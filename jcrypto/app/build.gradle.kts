@@ -1,5 +1,8 @@
+val accpVersion = "2.2.0"
+
 plugins {
     application
+    id("com.google.osdetector") version "1.7.0"
 }
 
 repositories {
@@ -12,6 +15,7 @@ dependencies {
 
     implementation("info.picocli:picocli:4.7.3")
     implementation("org.bouncycastle:bc-fips:1.0.2.3")
+    implementation("software.amazon.cryptools:AmazonCorrettoCryptoProvider:$accpVersion:${osdetector.classifier}")
 
     annotationProcessor("info.picocli:picocli-codegen:4.7.3")
 }

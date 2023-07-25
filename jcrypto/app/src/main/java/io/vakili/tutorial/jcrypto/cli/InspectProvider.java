@@ -1,9 +1,11 @@
 package io.vakili.tutorial.jcrypto.cli;
 
+import com.amazon.corretto.crypto.provider.AmazonCorrettoCryptoProvider;
 import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import picocli.CommandLine;
 
 import java.security.Provider;
+import java.security.Security;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -11,6 +13,11 @@ import java.util.TreeSet;
 
 @CommandLine.Command(name = "inspect")
 public class InspectProvider implements Runnable {
+    private final static Provider ACCP = AmazonCorrettoCryptoProvider.INSTANCE;
+    private final static Map<String, Provider> notInstalledProviders = Map.of("BCFIPS",
+            new BouncyCastleFipsProvider(),
+            ACCP.getName(),
+            ACCP);
     @CommandLine.Parameters(index = "0")
     private String provider;
 
@@ -19,11 +26,17 @@ public class InspectProvider implements Runnable {
 
     @Override
     public void run() {
-        if ("BCFIPS".equals(provider)) {
-            inspect(new BouncyCastleFipsProvider());
-        } else {
+        final var p = findProvider(provider);
+        if (p == null) {
             System.err.println("Unknown provider: " + provider);
+            return;
         }
+        inspect(p);
+    }
+
+    private Provider findProvider(final String providerName) {
+        final var p = notInstalledProviders.get(providerName);
+        return p != null ? p : Security.getProvider(providerName);
     }
 
     private void inspect(final Provider p) {
